@@ -21,7 +21,8 @@ file.addConfig("candidate.Donald-Trump.Coolness", "0");
 file.addConfig("candidate.Hillary-Clinton.Coolness", "-1");
 file.addConfig("candidate.amount", "2");
 
-file.save```
+file.save
+```
 
 Will result as
 ```cm2
