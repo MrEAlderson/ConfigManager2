@@ -1,6 +1,9 @@
 # ConfigManager2
 Fast, light and easy to use config file management library
 
+No other libraries required.
+Download available at: https://github.com/MrEAlderson/ConfigManager2/releases
+
 Example:
 ```Java
 final ConfigFile file = new ConfigFile(new File("test.cm2"));
@@ -44,3 +47,7 @@ candidate {
 	amount: 2
 }
 ```
+
+With:
+3.140133ms write time
+1.005645ms read time
