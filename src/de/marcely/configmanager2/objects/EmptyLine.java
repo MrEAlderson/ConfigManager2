@@ -5,4 +5,9 @@ public class EmptyLine extends Config {
 	public EmptyLine(Tree parent){
 		super(null, null, parent, null);
 	}
+	
+	@Override
+	public int getType(){
+		return TYPE_EMPTYLINE;
+	}
 }

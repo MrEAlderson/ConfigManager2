@@ -15,6 +15,11 @@ public class Tree extends Config {
 		super(name, shortName, parent);
 	}
 	
+	@Override
+	public int getType(){
+		return TYPE_TREE;
+	}
+	
 	public void addChield(Config config){
 		this.chields.add(config);
 	}
@@ -23,7 +28,7 @@ public class Tree extends Config {
 		final List<Tree> list = new ArrayList<Tree>();
 		
 		for(Config c:chields){
-			if(c instanceof Tree)
+			if(c.getType() == Config.TYPE_TREE)
 				list.add((Tree) c);
 		}
 		
@@ -43,7 +48,7 @@ public class Tree extends Config {
 		final List<Config> list = new ArrayList<Config>();
 		
 		for(Config c:chields){
-			if(!(c instanceof Tree))
+			if(c.getType() != Config.TYPE_TREE)
 				list.add(c);
 		}
 		
@@ -52,7 +57,7 @@ public class Tree extends Config {
 	
 	public @Nullable Config getConfigChield(String name){
 		for(Config c:getConfigChields()){
-			if(c.getShortName().equals(name))
+			if(c.getType() != Config.TYPE_DESCRIPTION && c.getShortName().equals(name))
 				return c;
 		}
 		

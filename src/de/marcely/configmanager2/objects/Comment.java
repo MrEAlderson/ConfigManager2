@@ -5,4 +5,9 @@ public class Comment extends Config {
 	public Comment(Tree parent, String value){
 		super(null, null, parent, value);
 	}
+	
+	@Override
+	public int getType(){
+		return TYPE_COMMENT;
+	}
 }
