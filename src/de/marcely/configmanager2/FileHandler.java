@@ -11,10 +11,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.marcely.configmanager2.objects.Comment;
-import de.marcely.configmanager2.objects.Config;
-import de.marcely.configmanager2.objects.EmptyLine;
-import de.marcely.configmanager2.objects.Tree;
+import de.marcely.configmanager2.objects.*;
 import lombok.Getter;
 
 public class FileHandler {
@@ -48,8 +45,17 @@ public class FileHandler {
 			while((line = reader.readLine()) != null){
 				line = replaceFirstSpaces(line);
 				
-				if(line.startsWith("# "))
-					tree.addChield(new Comment(tree, replaceFirstSpaces(line.substring(1))));
+				if(line.length() == 0){
+					tree.addChild(new EmptyLine(tree));
+					continue;
+				}
+				
+				final char firstChar = line.charAt(0);
+				final char lastChar = line.charAt(line.length()-1);
+				boolean newParent = false;
+				
+				if(firstChar == '#')
+					tree.addChild(new Comment(tree, replaceFirstSpaces(line.substring(1))));
 				else if(line.contains(":")){
 					final String[] strs = line.split(":");
 					String value = "";
@@ -61,21 +67,34 @@ public class FileHandler {
 							value += ":";
 					}
 					
-					tree.addChield(new Config(tree.getName(), strs[0], tree, value));
-				}else if(line.endsWith("{")){
+					if(!line.startsWith("!"))
+						tree.addChild(new Config(replaceLastSpaces(strs[0]), tree, replaceFirstSpaces(value)));
+					else
+						tree.addChild(new Description(tree, replaceLastSpaces(strs[0]).substring(1), replaceFirstSpaces(value)));
+				}else if(lastChar == '{'){
 					final String name = replaceLastSpaces(line.substring(0, line.length()-1));
 					
-					tree = new Tree(tree.getName()+"."+name, name, tree);
-					tree.getParent().addChield(tree);
-				}else if(line.endsWith("}")){
+					tree = new Tree(name, tree);
+					tree.getParent().addChild(tree);
+					newParent = true;
+				}else if(replaceLastSpaces(line).equals("}")){
 					tree = tree.getParent();
+					newParent = true;
 					
 					if(tree == null){
 						reader.close();
 						return IOResult.RESULT_FAILED_LOAD_NOTVALID;
 					}
+					
 				}else
-					tree.addChield(new EmptyLine(tree));
+					tree.addChild(new EmptyLine(tree));
+				
+				if(!newParent){
+					// add list item for every config
+					final String value = replaceLastSpaces(line);
+					
+					tree.getRawChilds().add(value);
+				}
 			}
 			
 			reader.close();
@@ -130,21 +149,29 @@ public class FileHandler {
 	}
 	
 	private List<String> getLines(Tree tree, String currentPrefix){
+		return getLines(tree, currentPrefix, tree.equals(file.getRootTree()));
+	}
+	
+	private List<String> getLines(Tree tree, String currentPrefix, boolean root){
 		final List<String> lines = new ArrayList<String>();
 		
-		for(Config c:tree.getChields()){
-			if(c instanceof Tree){
+		for(Config c:tree.getChilds()){
+			if(c.getType() == Config.TYPE_TREE){
 				
-				lines.add(currentPrefix + c.getShortName() + " {");
-				lines.addAll(getLines((Tree) c, currentPrefix + "	"));
+				lines.add(currentPrefix + c.getName() + " {");
+				lines.addAll(getLines((Tree) c, currentPrefix + "	", false));
 				lines.add(currentPrefix + "}");
 				
-			}else if(c instanceof Comment)
+			}else if(c.getType() == Config.TYPE_COMMENT)
 				lines.add(currentPrefix + "# " + c.getValue());
-			else if(c instanceof EmptyLine)
+			else if(c.getType() == Config.TYPE_EMPTYLINE)
 				lines.add("");
+			else if(c.getType() == Config.TYPE_DESCRIPTION)
+				lines.add(currentPrefix + "!" + c.getName() + ": " + c.getValue());
+			else if(c.getType() == Config.TYPE_LISTITEM)
+				lines.add(currentPrefix + c.getValue());
 			else
-				lines.add(currentPrefix + c.getShortName() + ": " + c.getValue());
+				lines.add(currentPrefix + c.getName() + ": " + c.getValue());
 		}
 		
 		return lines;

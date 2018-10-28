@@ -30,8 +30,8 @@ public class ConfigPicker {
 		final String[] strs = path.split("\\.");
 		
 		final Tree tree = path.contains(".") ? getTree(path.substring(0, path.lastIndexOf('.')), true) : file.getRootTree();
-		final Config config = new Config(path, strs[strs.length-1], tree, value);
-		tree.addChield(config);
+		final Config config = new Config(strs[strs.length-1], tree, value);
+		tree.addChild(config);
 		allConfigs.add(config);
 		
 		return config;
@@ -44,7 +44,7 @@ public class ConfigPicker {
 	public Comment addComment(String path, String value){
 		final Tree tree = getTree(path, true);
 		final Comment config = new Comment(tree, value);
-		tree.addChield(config);
+		tree.addChild(config);
 		
 		return config;
 	}
@@ -56,27 +56,49 @@ public class ConfigPicker {
 	public EmptyLine addEmptyLine(String path){
 		final Tree tree = getTree(path, true);
 		final EmptyLine config = new EmptyLine(tree);
-		tree.addChield(config);
+		tree.addChild(config);
 		
 		return config;
 	}
 	
 	public @Nullable Config getConfig(String path){
-		final Tree tree = getTree(path.substring(0, path.lastIndexOf('.')), false);
+		final Tree tree = getTree(path.contains("\\.") ? path.substring(0, path.lastIndexOf('.')) : "", false);
 		
 		if(tree != null){
 			final String[] strs = path.split("\\.");
 			
-			return tree.getConfigChield(strs[strs.length-1]);
+			return tree.getConfigChild(strs[strs.length-1]);
 		}else
-			return !file.getConfigNeverNull ? null : new Config(null, null, null, null);
+			return !file.getConfigNeverNull ? null : new Config(null, null, null) /* TODO */;
 	}
 	
 	public List<Config> getConfigsWhichStartWith(String name){
 		final List<Config> list = new ArrayList<Config>();
 		
 		for(Config c:allConfigs){
-			if(c.getName().startsWith(name))
+			if(c.getAbsolutePath().startsWith(name))
+				list.add(c);
+		}
+		
+		return list;
+	}
+	
+	public List<Config> getConfigsWhichEndWith(String name){
+		final List<Config> list = new ArrayList<Config>();
+		
+		for(Config c:allConfigs){
+			if(c.getAbsolutePath().endsWith(name))
+				list.add(c);
+		}
+		
+		return list;
+	}
+	
+	public List<Config> getConfigs(String name){
+		final List<Config> list = new ArrayList<Config>();
+		
+		for(Config c:allConfigs){
+			if(c.getAbsolutePath().equals(name))
 				list.add(c);
 		}
 		
@@ -85,7 +107,7 @@ public class ConfigPicker {
 	
 	public Description setDescription(String name, String value){
 		if(!containsBase())
-			file.getRootTree().getChields().add(0, new EmptyLine(file.getRootTree()));
+			file.getRootTree().getChilds().add(0, new EmptyLine(file.getRootTree()));
 		
 		Description config = getDescription(name);
 		if(config == null)
@@ -93,14 +115,14 @@ public class ConfigPicker {
 		else
 			config.setValue(value);
 			
-		file.getRootTree().getChields().add(0, config);
+		file.getRootTree().getChilds().add(0, config);
 		
 		return config;
 	}
 	
 	public @Nullable Description getDescription(String name){
-		for(Config c:file.getRootTree().getChields()){
-			if(c.getShortName() != null && c.getShortName().equals(name) && c.getType() == Config.TYPE_DESCRIPTION)
+		for(Config c:file.getRootTree().getChilds()){
+			if(c.getName() != null && c.getName().equals(name) && c.getType() == Config.TYPE_DESCRIPTION)
 				return (Description) c;
 		}
 		
@@ -108,7 +130,7 @@ public class ConfigPicker {
 	}
 	
 	public boolean containsBase(){
-		for(Config c:file.getRootTree().getChields()){
+		for(Config c:file.getRootTree().getChilds()){
 			if(c.getType() == Config.TYPE_DESCRIPTION && ((Description) c).isBase())
 				return true;
 		}
@@ -116,7 +138,7 @@ public class ConfigPicker {
 		return false;
 	}
 	
-	private @Nullable Tree getTree(String path, boolean newInstance){
+	public @Nullable Tree getTree(String path, boolean newInstance){
 		if(path.equals(""))
 			return file.getRootTree();
 		
@@ -133,13 +155,13 @@ public class ConfigPicker {
 			name += strs[cIndex];
 			
 			// get tree
-			Tree nTree = cTree.getTreeChield(strs[cIndex]);
+			Tree nTree = cTree.getTreeChild(strs[cIndex]);
 			
 			// new tree if chield is missing
 			if(nTree == null){
 				if(newInstance){
-					nTree = new Tree(name, strs[cIndex], cTree);
-					cTree.addChield(nTree);
+					nTree = new Tree(strs[cIndex], cTree);
+					cTree.addChild(nTree);
 				}else
 					return null;
 			}

@@ -3,11 +3,11 @@ package de.marcely.configmanager2.objects;
 public class EmptyLine extends Config {
 
 	public EmptyLine(Tree parent){
-		super(null, null, parent, null);
+		super(null, parent, null);
 	}
 	
 	@Override
-	public int getType(){
+	public byte getType(){
 		return TYPE_EMPTYLINE;
 	}
 }

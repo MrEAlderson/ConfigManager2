@@ -3,11 +3,11 @@ package de.marcely.configmanager2.objects;
 public class Comment extends Config {
 
 	public Comment(Tree parent, String value){
-		super(null, null, parent, value);
+		super(null, parent, value);
 	}
 	
 	@Override
-	public int getType(){
+	public byte getType(){
 		return TYPE_COMMENT;
 	}
 }

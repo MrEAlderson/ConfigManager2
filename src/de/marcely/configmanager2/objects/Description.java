@@ -11,13 +11,13 @@ public class Description extends Config {
 	}
 	
 	public Description(Tree rootTree, String name, String value, boolean base){
-		super(name, name, rootTree, value);
+		super(name, rootTree, value);
 		
 		this.base = base;
 	}
 	
 	@Override
-	public int getType(){
+	public byte getType(){
 		return TYPE_DESCRIPTION;
 	}
 }
