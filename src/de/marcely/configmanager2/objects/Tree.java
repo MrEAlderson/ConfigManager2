@@ -5,25 +5,25 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import de.marcely.configmanager2.ConfigFile;
+import de.marcely.configmanager2.ConfigContainer;
 import lombok.Getter;
 
 public class Tree extends Config {
 	
-	private final ConfigFile file;
+	private final ConfigContainer container;
 	@Getter private final List<Config> childs = new ArrayList<Config>();
 	@Getter private final List<String> rawChilds = new ArrayList<String>();
 	
 	public Tree(String name, Tree parent){
 		super(name, parent);
 		
-		this.file = null;
+		this.container = null;
 	}
 	
-	public Tree(ConfigFile file){
+	public Tree(ConfigContainer container){
 		super("", null);
 		
-		this.file = file;
+		this.container = container;
 	}
 	
 	@Override
@@ -35,7 +35,7 @@ public class Tree extends Config {
 		this.childs.add(config);
 		
 		if(config.getType() == Config.TYPE_CONFIG && isInsideRoot())
-			getConfigFile().getPicker().getAllConfigs().add(config);
+			getConfigContainer().getPicker().getAllConfigs().add(config);
 	}
 	
 	public List<Tree> getTreeChilds(){
@@ -106,16 +106,16 @@ public class Tree extends Config {
 	}
 	
 	public boolean isRoot(){
-		return this.file != null;
+		return this.container != null;
 	}
 	
 	public boolean isInsideRoot(){
 		return isRoot() ? true : getParent().isInsideRoot();
 	}
 	
-	public @Nullable ConfigFile getConfigFile(){
+	public @Nullable ConfigContainer getConfigContainer(){
 		if(isInsideRoot())
-			return isRoot() ? this.file : getParent().getConfigFile();
+			return isRoot() ? this.container : getParent().getConfigContainer();
 		else
 			return null;
 	}

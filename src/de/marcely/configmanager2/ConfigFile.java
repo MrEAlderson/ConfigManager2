@@ -1,37 +1,36 @@
 package de.marcely.configmanager2;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import de.marcely.configmanager2.objects.Tree;
 import lombok.Getter;
 
-public class ConfigFile {
-	
-	public static final String VERSION = "2.1";
-	
-	public boolean getConfigNeverNull = false;
+public class ConfigFile extends ConfigContainer {
 	
 	@Getter private final File file;
-	private final FileHandler fileHandler;
-	@Getter private final ConfigPicker picker;
-	
-	@Getter private final Tree rootTree = new Tree(this);
 	
 	public ConfigFile(File file){
 		this(file, false);
 	}
 	
 	public ConfigFile(File file, boolean getConfigNeverNull){
-		this.file = file;
-		this.fileHandler = new FileHandler(this);
-		this.picker = new ConfigPicker(this);
+		super(getConfigNeverNull);
 		
-		this.getConfigNeverNull = getConfigNeverNull;
+		this.file = file;
 	}
 	
-	public void clear(){
-		this.rootTree.clear();
-		this.picker.getAllConfigs().clear();
+	@Override
+	public InputStream openInputStream() throws IOException {
+		return new FileInputStream(file);
+	}
+
+	@Override
+	public OutputStream openOutputStream() throws IOException {
+		return new FileOutputStream(file);
 	}
 	
 	/**
@@ -39,7 +38,12 @@ public class ConfigFile {
 	 * @return Returns the result of the class IOResult
 	 */
 	public int load(){
-		return fileHandler.load();
+		if(!file.exists())
+			return IOResult.RESULT_FAILED_LOAD_MISSINGFILE;
+		else if(!file.canRead())
+			return IOResult.RESULT_FAILED_LOAD_NOPERMS;
+		
+		return super.load();
 	}
 	
 	/**
@@ -47,7 +51,27 @@ public class ConfigFile {
 	 * @return Returns the result of the class IOResult
 	 */
 	public int save(){
-		return fileHandler.save();
+		// check if everything is ok
+		if(file.exists() && !file.canWrite())
+			return IOResult.RESULT_FAILED_SAVE_NOPERMS;
+		
+		// recreate
+		try{
+			if(file.exists())
+				file.delete();
+			file.createNewFile();
+			
+			// check if everything is ok again
+			if(!file.canWrite())
+				return IOResult.RESULT_FAILED_SAVE_NOPERMS;
+		
+		}catch(IOException e){
+			e.printStackTrace();
+			
+			return IOResult.RESULT_FAILED_SAVE_NOPERMS;
+		}
+		
+		return super.save();
 	}
 	
 	public boolean exists(){

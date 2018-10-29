@@ -14,11 +14,11 @@ import lombok.Getter;
 
 public class ConfigPicker {
 	
-	@Getter private final ConfigFile file;
+	@Getter private final ConfigContainer container;
 	@Getter private final List<Config> allConfigs = new ArrayList<Config>();
 	
-	public ConfigPicker(ConfigFile file){
-		this.file = file;
+	public ConfigPicker(ConfigContainer container){
+		this.container = container;
 	}
 	
 	
@@ -29,7 +29,7 @@ public class ConfigPicker {
 	public Config addConfig(String path, String value){
 		final String[] strs = path.split("\\.");
 		
-		final Tree tree = path.contains(".") ? getTree(path.substring(0, path.lastIndexOf('.')), true) : file.getRootTree();
+		final Tree tree = path.contains(".") ? getTree(path.substring(0, path.lastIndexOf('.')), true) : container.getRootTree();
 		final Config config = new Config(strs[strs.length-1], tree, value);
 		tree.addChild(config);
 		allConfigs.add(config);
@@ -69,7 +69,7 @@ public class ConfigPicker {
 			
 			return tree.getConfigChild(strs[strs.length-1]);
 		}else
-			return !file.getConfigNeverNull ? null : new Config(null, null, null) /* TODO */;
+			return !container.getConfigNeverNull ? null : new Config(null, null, null) /* TODO */;
 	}
 	
 	public List<Config> getConfigsWhichStartWith(String name){
@@ -107,21 +107,21 @@ public class ConfigPicker {
 	
 	public Description setDescription(String name, String value){
 		if(!containsBase())
-			file.getRootTree().getChilds().add(0, new EmptyLine(file.getRootTree()));
+			container.getRootTree().getChilds().add(0, new EmptyLine(container.getRootTree()));
 		
 		Description config = getDescription(name);
 		if(config == null)
-			config = new Description(file.getRootTree(), name, value);
+			config = new Description(container.getRootTree(), name, value);
 		else
 			config.setValue(value);
 			
-		file.getRootTree().getChilds().add(0, config);
+		container.getRootTree().getChilds().add(0, config);
 		
 		return config;
 	}
 	
 	public @Nullable Description getDescription(String name){
-		for(Config c:file.getRootTree().getChilds()){
+		for(Config c:container.getRootTree().getChilds()){
 			if(c.getName() != null && c.getName().equals(name) && c.getType() == Config.TYPE_DESCRIPTION)
 				return (Description) c;
 		}
@@ -130,7 +130,7 @@ public class ConfigPicker {
 	}
 	
 	public boolean containsBase(){
-		for(Config c:file.getRootTree().getChilds()){
+		for(Config c:container.getRootTree().getChilds()){
 			if(c.getType() == Config.TYPE_DESCRIPTION && ((Description) c).isBase())
 				return true;
 		}
@@ -140,13 +140,13 @@ public class ConfigPicker {
 	
 	public @Nullable Tree getTree(String path, boolean newInstance){
 		if(path.equals(""))
-			return file.getRootTree();
+			return container.getRootTree();
 		
 		final String[] strs = path.split("\\.");
 		
 		int cIndex = 0;
 		String name = "";
-		Tree cTree = file.getRootTree();
+		Tree cTree = container.getRootTree();
 		
 		while(cIndex < strs.length){
 			// append name

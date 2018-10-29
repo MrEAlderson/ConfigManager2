@@ -2,45 +2,35 @@ package de.marcely.configmanager2;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.marcely.configmanager2.objects.*;
 import lombok.Getter;
 
-public class FileHandler {
+public class IOHandler {
 	
-	@Getter private final ConfigFile file;
+	@Getter private final ConfigContainer container;
 	
-	public FileHandler(ConfigFile file){
-		this.file = file;
+	public IOHandler(ConfigContainer container){
+		this.container = container;
 	}
 	
 	public int load(){
-		final File f = file.getFile();
-		
-		// check if everything is ok
-		if(!f.exists())
-			return IOResult.RESULT_FAILED_LOAD_MISSINGFILE;
-		else if(!f.canRead())
-			return IOResult.RESULT_FAILED_LOAD_NOPERMS;
-		
 		// prepare
-		file.getRootTree().clear();
+		container.getRootTree().clear();
 		
 		// start
 		try{
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"));
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(this.container.openInputStream(), StandardCharsets.UTF_8));
 			
 			String line = null;
 			
-			Tree tree = file.getRootTree();
+			Tree tree = container.getRootTree();
 			
 			while((line = reader.readLine()) != null){
 				line = replaceFirstSpaces(line);
@@ -99,7 +89,7 @@ public class FileHandler {
 			
 			reader.close();
 			
-			if(!tree.equals(file.getRootTree()))
+			if(!tree.equals(container.getRootTree()))
 				return IOResult.RESULT_FAILED_LOAD_NOTVALID;
 			
 		}catch(IOException e){
@@ -112,25 +102,10 @@ public class FileHandler {
 	}
 	
 	public int save(){
-		final File f = file.getFile();
-		
-		// check if everything is ok
-		if(f.exists() && !f.canWrite())
-			return IOResult.RESULT_FAILED_SAVE_NOPERMS;
-		
 		// start
 		try{
-			// recreate
-			if(f.exists())
-				f.delete();
-			f.createNewFile();
-			
-			// check if everything is ok again
-			if(!f.canWrite())
-				return IOResult.RESULT_FAILED_SAVE_NOPERMS;
-			
-			final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF8"));
-			final List<String> lines = getLines(file.getRootTree(), "");
+			final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(this.container.openOutputStream(), StandardCharsets.UTF_8));
+			final List<String> lines = getLines(container.getRootTree(), "");
 			
 			for(String line:lines){
 				writer.write(line);
@@ -149,7 +124,7 @@ public class FileHandler {
 	}
 	
 	private List<String> getLines(Tree tree, String currentPrefix){
-		return getLines(tree, currentPrefix, tree.equals(file.getRootTree()));
+		return getLines(tree, currentPrefix, tree.equals(container.getRootTree()));
 	}
 	
 	private List<String> getLines(Tree tree, String currentPrefix, boolean root){
