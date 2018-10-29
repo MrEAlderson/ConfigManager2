@@ -12,30 +12,29 @@ Download available at: https://github.com/MrEAlderson/ConfigManager2/releases
 Example to write a config manually:
 ```Java
 final ConfigFile file = new ConfigFile(new File("test.cm2"));
+final ConfigPicker picker = file.getPicker();
 
-file.addComment("Don't change this");
-file.addConfig("file-version", "1.0");
+picker.setDescription("file-version", "1.0");
 
-file.addEmptyLine();
+picker.addEmptyLine();
 
-file.addConfig("author", "MrEAlderson");
-file.addConfig("language", "english");
+picker.addConfig("author", "MrEAlderson");
+picker.addConfig("language", "english");
 
-file.addEmptyLine();
+picker.addEmptyLine();
 
-file.addConfig("candidate.Donald-Trump.votes", "306");
-file.addConfig("candidate.Hillary-Clinton.votes", "232");
-file.addConfig("candidate.Donald-Trump.Coolness", "0");
-file.addConfig("candidate.Hillary-Clinton.Coolness", "-1");
-file.addConfig("candidate.amount", "2");
+picker.addConfig("candidate.Donald-Trump.votes", "306");
+picker.addConfig("candidate.Hillary-Clinton.votes", "232");
+picker.addConfig("candidate.Donald-Trump.Coolness", "0");
+picker.addConfig("candidate.Hillary-Clinton.Coolness", "-1");
+picker.addConfig("candidate.amount", "2");
 
-file.save
+file.save();
 ```
 
 Will result as
 ```cm2
-# Don't change this
-file-version: 1.0
+!file-version: 1.0
 
 author: MrEAlderson
 language: english
@@ -56,3 +55,36 @@ candidate {
 With:
 3.140133ms write time
 1.005645ms read time
+
+
+============================================
+
+Example to read a config file:
+```Java
+final ConfigFile file = new ConfigFile(new File("test.cm2"));
+final ConfigPicker picker = file.getPicker();
+
+file.load();
+
+final Description version = picker.getDescription("file-version");
+final Config author = picker.getConfig("author");
+final Config language = picker.getConfig("language");
+final Config blabla = picker.addConfig("candidate.Donald-Trump.votes");
+
+if(version != null){
+	System.out.println("Version: " + version.getValue());
+}
+
+if(author != null){
+	// ...
+}
+
+if(language != null){
+	// ...
+}
+
+// ...
+
+file.clear();
+
+```
