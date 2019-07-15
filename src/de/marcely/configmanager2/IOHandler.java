@@ -76,8 +76,12 @@ public class IOHandler {
 						return IOResult.RESULT_FAILED_LOAD_NOTVALID;
 					}
 					
-				}else
-					tree.addChild(new EmptyLine(tree));
+				}else{
+					if(line.isEmpty())
+						tree.addChild(new EmptyLine(tree));
+					else
+						tree.addChild(new ListItem(line, tree));
+				}
 				
 				if(!newParent){
 					// add list item for every config
