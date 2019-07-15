@@ -1,6 +1,6 @@
 # ConfigManager2
-Fast, light and easy to use config file management library:
-(Probably much easier to use than YAML, JSON, XML etc.) 
+It's a library for quick and easy management of config files.
+ConfigManager2 has a similar syntax as YAML
 
 ============================================
 
@@ -9,7 +9,7 @@ Download available at: https://github.com/MrEAlderson/ConfigManager2/releases
 
 ============================================
 
-Example to write a config manually:
+Example of writing a config manually:
 ```Java
 final ConfigFile file = new ConfigFile(new File("test.cm2"));
 final ConfigPicker picker = file.getPicker();
